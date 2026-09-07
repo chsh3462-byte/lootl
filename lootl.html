@@ -26,6 +26,10 @@
             text-shadow: 0 0 10px #eab308, 0 0 20px #ca8a04;
         }
 
+        .red-glow {
+            text-shadow: 0 0 10px #ef4444, 0 0 20px #dc2626;
+        }
+
         .glitch-text {
             animation: glitch 1.5s infinite;
         }
@@ -48,32 +52,54 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-5">
 
-    <!-- Top Casino Header -->
-    <header class="w-full max-w-4xl flex flex-col sm:flex-row justify-between items-center bg-gray-900/95 p-4 rounded-3xl border-2 border-pink-500/60 mb-3 shadow-2xl backdrop-blur">
-        <div class="text-center sm:text-left mb-2 sm:mb-0">
+    <header class="w-full max-w-4xl flex flex-col sm:flex-row justify-between items-center bg-gray-900/95 p-4 rounded-3xl border-2 border-pink-500/60 mb-3 shadow-2xl backdrop-blur gap-3">
+        <div class="text-center sm:text-left">
             <h1 class="text-3xl sm:text-4xl font-black tracking-wider text-pink-500 neon-title glitch-text">
                 🗑️ 대충 만든 쓰레기 🗑️
             </h1>
             <p class="text-xs sm:text-sm text-yellow-400 gold-glow">지하 파친코 & 카지노 - 인생역전 한탕 도박장</p>
         </div>
 
-        <!-- Wallet / Status Display -->
-        <div class="flex items-center space-x-3">
-            <div class="bg-black/90 px-4 py-2 rounded-2xl border-2 border-yellow-500 flex flex-col items-end shadow-inner">
-                <span class="text-[10px] text-yellow-500/80 font-bold tracking-widest uppercase">보유 포인트 (BALANCE)</span>
-                <div class="flex items-center space-x-1">
-                    <span id="userBalanceDisplay" class="text-2xl font-black text-yellow-400 gold-glow">100,000</span>
-                    <span class="text-xs text-yellow-500 font-bold">P</span>
+        <!-- Account & Balance Bar -->
+        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+            <!-- User Status / Login Button -->
+            <div id="authStatusContainer" class="flex items-center space-x-2 bg-gray-950 px-3 py-1.5 rounded-2xl border border-gray-700 text-xs">
+                <i class="fas fa-user-circle text-gray-400 text-base" id="userAvatarIcon"></i>
+                <span id="accountUserDisplay" class="text-gray-300 font-bold">게스트</span>
+                <button id="openAuthModalBtn" class="bg-pink-600 hover:bg-pink-500 text-white font-bold px-2.5 py-1 rounded-xl text-[11px] transition">
+                    로그인/가입
+                </button>
+            </div>
+
+            <!-- Balances -->
+            <div class="flex items-center space-x-2">
+                <!-- Balance -->
+                <div class="bg-black/90 px-3.5 py-1.5 rounded-2xl border-2 border-yellow-500 flex flex-col items-end shadow-inner">
+                    <span class="text-[9px] text-yellow-500/80 font-bold tracking-widest uppercase">보유 포인트</span>
+                    <div class="flex items-center space-x-1">
+                        <span id="userBalanceDisplay" class="text-xl font-black text-yellow-400 gold-glow">100,000</span>
+                        <span class="text-xs text-yellow-500 font-bold">P</span>
+                    </div>
+                </div>
+
+                <!-- Debt -->
+                <div class="bg-black/90 px-3.5 py-1.5 rounded-2xl border-2 border-red-600 flex flex-col items-end shadow-inner">
+                    <span class="text-[9px] text-red-500/80 font-bold tracking-widest uppercase">사채 빚 (DEBT)</span>
+                    <div class="flex items-center space-x-1">
+                        <span id="userDebtDisplay" class="text-xl font-black text-red-500 red-glow">0</span>
+                        <span class="text-xs text-red-500 font-bold">P</span>
+                    </div>
                 </div>
             </div>
-            <button id="sfxToggleBtn" class="px-3 py-2.5 bg-pink-600 hover:bg-pink-500 rounded-2xl text-xs font-bold transition flex items-center space-x-1 shadow-lg">
+
+            <!-- Audio Sound Toggle -->
+            <button id="sfxToggleBtn" class="px-3 py-2 bg-pink-600 hover:bg-pink-500 rounded-2xl text-xs font-bold transition flex items-center space-x-1 shadow-lg">
                 <i class="fas fa-volume-up" id="sfxIcon"></i>
                 <span id="sfxText">SFX</span>
             </button>
         </div>
     </header>
 
-    <!-- Game Mode Selector -->
     <nav class="w-full max-w-4xl grid grid-cols-3 gap-2 mb-3">
         <button data-tab="pachinko" class="game-tab-btn py-3 px-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-black rounded-2xl text-sm border-2 border-pink-400 shadow-lg transition flex items-center justify-center space-x-2">
             <i class="fas fa-compact-disc text-yellow-300"></i>
@@ -89,7 +115,6 @@
         </button>
     </nav>
 
-    <!-- Main Casino Area -->
     <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-center relative">
 
         <!-- ================= 1. PACHINKO PARLOR ================= -->
@@ -116,7 +141,7 @@
             </div>
 
             <!-- Pachinko Canvas Board -->
-            <div class="relative w-full aspect-[4/5] bg-gray-950 rounded-2xl p-1 border-2 border-pink-500/40 shadow-inner overflow-hidden">
+            <div id="pachinkoCanvasContainer" class="relative w-full aspect-[4/5] bg-gray-950 rounded-2xl p-1 border-2 border-pink-500/40 shadow-inner overflow-hidden">
                 <canvas id="pachinkoCanvas" class="w-full h-full cursor-pointer"></canvas>
             </div>
 
@@ -238,23 +263,57 @@
 
     </main>
 
-    <!-- Bottom Emergency Loan Shark Banner -->
-    <div class="w-full max-w-4xl bg-gradient-to-r from-red-950 via-gray-900 to-red-950 border-2 border-red-600/80 p-3 rounded-2xl mt-3 flex flex-col sm:flex-row justify-between items-center shadow-xl">
-        <div class="text-center sm:text-left mb-2 sm:mb-0">
+    <div class="w-full max-w-4xl bg-gradient-to-r from-red-950 via-gray-900 to-red-950 border-2 border-red-600/80 p-3.5 rounded-2xl mt-3 flex flex-col sm:flex-row justify-between items-center shadow-xl gap-3">
+        <div class="text-center sm:text-left">
             <span class="text-xs text-red-400 font-bold block">🩸 파산 직전이신가요? 🩸</span>
-            <span class="text-sm font-black text-gray-200">지하 사채업자 긴급 자금 대출 서비스</span>
+            <span class="text-sm font-black text-gray-200">지하 사채업자 대출 & 진짜 빚 상환 시스템</span>
+            <p class="text-[11px] text-gray-400">돈을 빌리면 사채 빚이 쌓이며, 벌은 돈으로 반드시 상환해야 합니다!</p>
         </div>
-        <button id="loanSharkBtn" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl shadow-lg transition animate-bounce">
-            💸 긴급 대출 받기 (+50,000 P)
-        </button>
+        <div class="flex gap-2">
+            <button id="loanSharkBtn" class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95">
+                💸 대출 받기 (+50,000 P)
+            </button>
+            <button id="repayLoanBtn" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95">
+                💳 대출금 상환하기
+            </button>
+        </div>
     </div>
 
     <footer class="mt-3 text-center text-xs text-gray-600">
         ※ 본 게임은 가상의 도박장 시뮬레이터입니다. 과도한 도박은 삶을 피폐하게 만듭니다. | 🗑️ 대충 만든 쓰레기 🗑️
     </footer>
 
-    <!-- Custom Alert Modal -->
-    <div id="customModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+    <div id="authModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden backdrop-blur-sm">
+        <div class="bg-gray-900 border-2 border-pink-500 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl relative">
+            <button id="closeAuthModalBtn" class="absolute top-3 right-4 text-gray-400 hover:text-white text-xl">✕</button>
+            
+            <h3 class="text-2xl font-black text-pink-400 mb-1">🎰 계정 가입 & 저장</h3>
+            <p class="text-xs text-gray-400 mb-4">로그인하면 보유 포인트와 사채 빚이 자동 저장됩니다.</p>
+
+            <form id="authForm" class="flex flex-col gap-3">
+                <input type="email" id="authEmail" placeholder="이메일 주소" class="bg-gray-950 border border-gray-700 p-3 rounded-xl text-xs text-white outline-none focus:border-pink-500" required>
+                <input type="password" id="authPassword" placeholder="비밀번호 (6자리 이상)" class="bg-gray-950 border border-gray-700 p-3 rounded-xl text-xs text-white outline-none focus:border-pink-500" required>
+
+                <div class="flex gap-2 mt-2">
+                    <button type="submit" id="loginSubmitBtn" class="flex-1 py-3 bg-pink-600 hover:bg-pink-500 text-white font-black rounded-xl text-xs transition">
+                        로그인
+                    </button>
+                    <button type="button" id="signupSubmitBtn" class="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-xl text-xs transition">
+                        계정 만들기
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-4 pt-3 border-t border-gray-800">
+                <button id="logoutBtn" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold rounded-xl text-xs transition hidden">
+                    로그아웃
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert / Repay Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden backdrop-blur-sm">
         <div class="bg-gray-900 border-2 border-pink-500 p-6 rounded-3xl max-w-xs w-full text-center shadow-2xl">
             <h3 id="modalTitle" class="text-2xl font-black text-pink-400 mb-2">알림</h3>
             <p id="modalMsg" class="text-sm text-gray-300 mb-4">메시지 내용</p>
@@ -263,6 +322,160 @@
             </button>
         </div>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Setup
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'trash-casino-app';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        } catch(e) {
+            firebaseConfig = null;
+        }
+
+        let app, auth, db;
+        let currentUser = null;
+
+        if (firebaseConfig) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Auth State Observer & Sync
+            onAuthStateChanged(auth, async (user) => {
+                currentUser = user;
+                const accountDisplay = document.getElementById('accountUserDisplay');
+                const logoutBtn = document.getElementById('logoutBtn');
+
+                if (user) {
+                    if (user.isAnonymous) {
+                        accountDisplay.innerText = "게스트 (" + user.uid.slice(0, 5) + ")";
+                        logoutBtn.classList.add('hidden');
+                    } else {
+                        accountDisplay.innerText = user.email ? user.email.split('@')[0] : '회원';
+                        logoutBtn.classList.remove('hidden');
+                    }
+                    loadUserDataFromCloud(user.uid);
+                } else {
+                    accountDisplay.innerText = "게스트";
+                    logoutBtn.classList.add('hidden');
+                    // Fallback to anonymous sign-in if needed
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+            });
+        }
+
+        // Save User Balance & Debt to Cloud Firestore
+        async function syncToCloud() {
+            if (!db || !currentUser) {
+                // Save locally to localStorage as fallback
+                localStorage.setItem('casino_balance', window.userBalance);
+                localStorage.setItem('casino_debt', window.userDebt);
+                return;
+            }
+            try {
+                const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'gameData', 'balanceInfo');
+                await setDoc(userRef, {
+                    balance: window.userBalance,
+                    debt: window.userDebt,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (err) {
+                console.warn("Cloud save failed, using local storage fallback", err);
+                localStorage.setItem('casino_balance', window.userBalance);
+                localStorage.setItem('casino_debt', window.userDebt);
+            }
+        }
+
+        async function loadUserDataFromCloud(uid) {
+            if (!db) return;
+            try {
+                const userRef = doc(db, 'artifacts', appId, 'users', uid, 'gameData', 'balanceInfo');
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    window.userBalance = data.balance ?? 100000;
+                    window.userDebt = data.debt ?? 0;
+                } else {
+                    // Check local storage fallback
+                    const localB = localStorage.getItem('casino_balance');
+                    const localD = localStorage.getItem('casino_debt');
+                    if (localB !== null) window.userBalance = parseInt(localB);
+                    if (localD !== null) window.userDebt = parseInt(localD);
+                    syncToCloud();
+                }
+            } catch(e) {
+                console.error("Error loading user cloud data", e);
+            }
+            window.updateBalanceDisplay();
+        }
+
+        window.syncToCloud = syncToCloud;
+
+        // Auth Form Event Handlers
+        document.getElementById('loginSubmitBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+
+            if (!email || !pass) return window.showAlert("입력 오류", "이메일과 비밀번호를 모두 입력해주세요.");
+
+            if (!auth) {
+                window.showAlert("안내", "게스트 모드로 진행 중입니다.");
+                document.getElementById('authModal').classList.add('hidden');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.showAlert("로그인 성공", `${email} 님 환영합니다!`);
+                document.getElementById('authModal').classList.add('hidden');
+            } catch (err) {
+                window.showAlert("로그인 실패", "이메일이나 비밀번호가 일치하지 않습니다.");
+            }
+        });
+
+        document.getElementById('signupSubmitBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+
+            if (!email || !pass || pass.length < 6) {
+                return window.showAlert("가입 오류", "유효한 이메일과 6자리 이상의 비밀번호를 입력해주세요.");
+            }
+
+            if (!auth) {
+                window.showAlert("안내", "온라인 저장소가 연결되지 않았습니다.");
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                await syncToCloud();
+                window.showAlert("계정 생성 완료!", "계정이 등록되었습니다. 전 세계 어디서든 불러올 수 있습니다.");
+                document.getElementById('authModal').classList.add('hidden');
+            } catch (err) {
+                window.showAlert("계정 생성 실패", err.message || "계정을 생성할 수 없습니다.");
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (auth) {
+                await signOut(auth);
+                await signInAnonymously(auth);
+            }
+            window.showAlert("로그아웃", "로그아웃 되었습니다.");
+            document.getElementById('authModal').classList.add('hidden');
+        });
+    </script>
 
     <script>
         // Retro Web Audio Sound Synthesizer
@@ -351,16 +564,20 @@
 
         const audio = new RetroAudio();
 
-        // Economy System (Points)
-        let userBalance = 100000; // Starting Balance: 100,000 P
+        // Economy System (Points & Real Debt)
+        window.userBalance = parseInt(localStorage.getItem('casino_balance')) || 100000;
+        window.userDebt = parseInt(localStorage.getItem('casino_debt')) || 0;
 
         function updateBalanceDisplay() {
-            document.getElementById('userBalanceDisplay').innerText = userBalance.toLocaleString();
+            document.getElementById('userBalanceDisplay').innerText = window.userBalance.toLocaleString();
+            document.getElementById('userDebtDisplay').innerText = window.userDebt.toLocaleString();
         }
+        window.updateBalanceDisplay = updateBalanceDisplay;
 
         function addBalance(amount) {
-            userBalance += amount;
+            window.userBalance += amount;
             updateBalanceDisplay();
+            if (window.syncToCloud) window.syncToCloud();
         }
 
         function showAlert(title, msg) {
@@ -368,19 +585,54 @@
             document.getElementById('modalMsg').innerText = msg;
             document.getElementById('customModal').classList.remove('hidden');
         }
+        window.showAlert = showAlert;
 
         document.getElementById('modalCloseBtn').addEventListener('click', () => {
             document.getElementById('customModal').classList.add('hidden');
         });
 
-        // Loan Shark Emergency Loan
+        // Account Auth Modal Toggle
+        document.getElementById('openAuthModalBtn').addEventListener('click', () => {
+            document.getElementById('authModal').classList.remove('hidden');
+        });
+        document.getElementById('closeAuthModalBtn').addEventListener('click', () => {
+            document.getElementById('authModal').classList.add('hidden');
+        });
+
+        // Loan Shark Real Debt & Repayment System
         document.getElementById('loanSharkBtn').addEventListener('click', () => {
             addBalance(50000);
-            showAlert("🩸 사채 대출 완료", "지하 사채업자에게 50,000 P를 대출 받았습니다! 꼭 갚으셔야 합니다... 😈");
+            window.userDebt += 50000;
+            updateBalanceDisplay();
+            if (window.syncToCloud) window.syncToCloud();
+
+            showAlert("🩸 사채 대출 완료", "지하 사채업자에게 50,000 P를 대출 받았습니다! 사채 빚 50,000 P가 추가되었습니다. 꼭 갚으셔야 합니다... 😈");
+        });
+
+        document.getElementById('repayLoanBtn').addEventListener('click', () => {
+            if (window.userDebt <= 0) {
+                return showAlert("상환 불필요", "갚아야 할 사채 빚이 없습니다!");
+            }
+
+            if (window.userBalance <= 0) {
+                return showAlert("상환 실패", "상환에 사용할 보유 포인트가 전혀 없습니다!");
+            }
+
+            const payAmt = Math.min(window.userBalance, window.userDebt);
+            window.userBalance -= payAmt;
+            window.userDebt -= payAmt;
+            updateBalanceDisplay();
+            if (window.syncToCloud) window.syncToCloud();
+
+            if (window.userDebt === 0) {
+                showAlert("💳 대출 완납 완료!", `축하합니다! 사채 빚을 전부 상환했습니다! (${payAmt.toLocaleString()} P 지급)`);
+            } else {
+                showAlert("💳 대출 일부 상환", `${payAmt.toLocaleString()} P를 상환했습니다. 남은 사채 빚: ${window.userDebt.toLocaleString()} P`);
+            }
         });
 
         // ========================================================
-        // 1. PACHINKO GAME ENGINE
+        // 1. PACHINKO GAME ENGINE (GITHUB PAGES FULL COMPATIBILITY)
         // ========================================================
         const pachinkoCanvas = document.getElementById('pachinkoCanvas');
         const pCtx = pachinkoCanvas.getContext('2d');
@@ -399,14 +651,20 @@
 
         const PACHINKO_BALL_COST = 500; // 500 P per ball
 
+        // Robust canvas auto-resizer for GitHub Pages rendering pipeline
         function resizePachinko() {
-            if (!pachinkoCanvas.parentElement) return;
-            const rect = pachinkoCanvas.parentElement.getBoundingClientRect();
-            pWidth = rect.width;
-            pHeight = rect.height;
-            pachinkoCanvas.width = pWidth;
-            pachinkoCanvas.height = pHeight;
-            initPachinkoBoard();
+            const container = document.getElementById('pachinkoCanvasContainer');
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            // Ensure width & height are valid positive numbers before assigning
+            if (rect.width > 0 && rect.height > 0) {
+                pWidth = rect.width;
+                pHeight = rect.height;
+                pachinkoCanvas.width = pWidth;
+                pachinkoCanvas.height = pHeight;
+                initPachinkoBoard();
+            }
         }
 
         function initPachinkoBoard() {
@@ -414,9 +672,11 @@
             pWindmills = [];
             pSidePockets = [];
 
+            if (pWidth <= 0 || pHeight <= 0) return;
+
             const rows = 10;
             const startY = 140;
-            const spacingY = 28;
+            const spacingY = Math.max(18, pHeight * 0.055);
 
             for (let r = 0; r < rows; r++) {
                 const cols = r % 2 === 0 ? 9 : 8;
@@ -458,7 +718,7 @@
         }
 
         function launchPachinkoBall() {
-            if (userBalance < PACHINKO_BALL_COST) {
+            if (window.userBalance < PACHINKO_BALL_COST) {
                 showAlert("💸 포인트 부족!", "파친코 구슬을 쏘려면 최소 500 P가 필요합니다!");
                 if (isPachinkoAuto) togglePachinkoAuto();
                 return;
@@ -561,7 +821,7 @@
             addBalance(20000); // Instant Bonus
 
             const statusText = document.getElementById('pachinkoStatusText');
-            statusText.innerText = "🔥 FEVER 잭팟! 하단 아타카 개막! (+10,000 P) 🔥";
+            statusText.innerText = "🔥 FEVER 잭팟! 하단 아타카 개막! (+20,000 P) 🔥";
             statusText.className = "text-xs font-black text-red-500 glitch-text tracking-wider mb-1";
 
             let feverTimeLeft = 18;
@@ -594,6 +854,11 @@
         }
 
         function updatePachinko() {
+            // Guarantee setup if not initialized due to delayed load
+            if (pPegs.length === 0 && pWidth > 0) {
+                initPachinkoBoard();
+            }
+
             const gravity = 0.24;
 
             if (isPFever && pAttackerOpenProgress < 1) {
@@ -664,14 +929,16 @@
                 });
 
                 // Attacker Gate
-                const currentAttackerWidth = pAttacker.w + (pAttackerOpenProgress * 40);
-                if (pAttackerOpenProgress > 0.2 &&
-                    Math.abs(b.x - pAttacker.x) < currentAttackerWidth / 2 &&
-                    Math.abs(b.y - pAttacker.y) < pAttacker.h / 2) {
-                    audio.playJackpot();
-                    addBalance(10000); // Big Attacker payout
-                    pBalls.splice(i, 1);
-                    continue;
+                if (pAttacker) {
+                    const currentAttackerWidth = pAttacker.w + (pAttackerOpenProgress * 40);
+                    if (pAttackerOpenProgress > 0.2 &&
+                        Math.abs(b.x - pAttacker.x) < currentAttackerWidth / 2 &&
+                        Math.abs(b.y - pAttacker.y) < pAttacker.h / 2) {
+                        audio.playJackpot();
+                        addBalance(10000);
+                        pBalls.splice(i, 1);
+                        continue;
+                    }
                 }
 
                 // Out
@@ -782,7 +1049,7 @@
 
         function runVipSlot() {
             if (isSlotSpinning) return;
-            if (userBalance < slotBetAmount) {
+            if (window.userBalance < slotBetAmount) {
                 showAlert("💸 포인트 부족!", "선택한 베팅 금액만큼의 포인트가 부족합니다!");
                 return;
             }
@@ -815,7 +1082,6 @@
                     clearInterval(timer);
                     isSlotSpinning = false;
 
-                    // Evaluate Jackpot
                     const final1 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
                     const final2 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
                     const final3 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
@@ -826,7 +1092,7 @@
 
                     if (final1 === final2 && final2 === final3) {
                         let multiplier = 10;
-                        if (final1 === '7️⃣') multiplier = 50; // 777 Jackpot 50x!
+                        if (final1 === '7️⃣') multiplier = 50;
                         else if (final1 === '💎') multiplier = 25;
 
                         const winAmt = slotBetAmount * multiplier;
@@ -901,7 +1167,7 @@
         }
 
         function startBlackjack() {
-            if (userBalance < bjBetAmount) {
+            if (window.userBalance < bjBetAmount) {
                 showAlert("💸 포인트 부족!", "블랙잭 판돈에 필요한 포인트가 부족합니다!");
                 return;
             }
@@ -952,7 +1218,6 @@
         function bjStand() {
             if (!isBjPlaying) return;
 
-            // Dealer AI Draw until 17+
             while (getCardScore(dealerHand) < 17) {
                 dealerHand.push(deck.pop());
             }
@@ -1021,7 +1286,9 @@
             const target = document.getElementById(`game-${tabName}`);
             if (target) target.classList.remove('hidden');
 
-            if (tabName === 'pachinko') resizePachinko();
+            if (tabName === 'pachinko') {
+                setTimeout(resizePachinko, 50);
+            }
         }
 
         window.addEventListener('load', () => {
@@ -1030,6 +1297,17 @@
             document.querySelectorAll('.game-tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => switchTab(btn.dataset.tab));
             });
+
+            // Resize Observer to handle GitHub Pages layout render delays
+            const container = document.getElementById('pachinkoCanvasContainer');
+            if (container && window.ResizeObserver) {
+                const observer = new ResizeObserver(() => {
+                    resizePachinko();
+                });
+                observer.observe(container);
+            } else {
+                resizePachinko();
+            }
 
             // Pachinko Controls
             document.getElementById('pachinkoShootBtn').addEventListener('click', launchPachinkoBall);
@@ -1041,7 +1319,7 @@
                 document.getElementById('pachinkoPowerText').innerText = `${pachinkoPower}%`;
             });
 
-            // Slot Bet Selector & Spin
+            // Slot Controls
             document.querySelectorAll('.slot-bet-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.slot-bet-btn').forEach(b => {
@@ -1053,7 +1331,7 @@
             });
             document.getElementById('vipSpinBtn').addEventListener('click', runVipSlot);
 
-            // Blackjack Bet Selector & Actions
+            // Blackjack Controls
             document.querySelectorAll('.bj-bet-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.bj-bet-btn').forEach(b => {
@@ -1067,14 +1345,14 @@
             document.getElementById('bjHitBtn').addEventListener('click', bjHit);
             document.getElementById('bjStandBtn').addEventListener('click', bjStand);
 
-            // Sound Toggle
+            // Audio Toggle
             document.getElementById('sfxToggleBtn').addEventListener('click', () => {
                 audio.enabled = !audio.enabled;
                 document.getElementById('sfxText').innerText = audio.enabled ? 'SFX ON' : 'SFX OFF';
                 document.getElementById('sfxIcon').className = audio.enabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
             });
 
-            // Main Animation Engine Loop
+            // Animation Loop
             function mainLoop() {
                 updatePachinko();
                 renderPachinko();
