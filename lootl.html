@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대충 만든 쓰레기 - 지하 도박장</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            background-color: #050508;
+            color: #ffffff;
+            user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .neon-title {
+            text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055, 0 0 40px #ff0077, 0 0 80px #ff0055;
+        }
+
+        .gold-glow {
+            text-shadow: 0 0 10px #eab308, 0 0 20px #ca8a04;
+        }
+
+        .glitch-text {
+            animation: glitch 1.5s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        canvas {
+            background: radial-gradient(circle at center, #0f111a 0%, #030305 100%);
+            border-radius: 1.25rem;
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-5">
+
+    <!-- Top Casino Header -->
+    <header class="w-full max-w-4xl flex flex-col sm:flex-row justify-between items-center bg-gray-900/95 p-4 rounded-3xl border-2 border-pink-500/60 mb-3 shadow-2xl backdrop-blur">
+        <div class="text-center sm:text-left mb-2 sm:mb-0">
+            <h1 class="text-3xl sm:text-4xl font-black tracking-wider text-pink-500 neon-title glitch-text">
+                🗑️ 대충 만든 쓰레기 🗑️
+            </h1>
+            <p class="text-xs sm:text-sm text-yellow-400 gold-glow">지하 파친코 & 카지노 - 인생역전 한탕 도박장</p>
+        </div>
+
+        <!-- Wallet / Status Display -->
+        <div class="flex items-center space-x-3">
+            <div class="bg-black/90 px-4 py-2 rounded-2xl border-2 border-yellow-500 flex flex-col items-end shadow-inner">
+                <span class="text-[10px] text-yellow-500/80 font-bold tracking-widest uppercase">보유 포인트 (BALANCE)</span>
+                <div class="flex items-center space-x-1">
+                    <span id="userBalanceDisplay" class="text-2xl font-black text-yellow-400 gold-glow">100,000</span>
+                    <span class="text-xs text-yellow-500 font-bold">P</span>
+                </div>
+            </div>
+            <button id="sfxToggleBtn" class="px-3 py-2.5 bg-pink-600 hover:bg-pink-500 rounded-2xl text-xs font-bold transition flex items-center space-x-1 shadow-lg">
+                <i class="fas fa-volume-up" id="sfxIcon"></i>
+                <span id="sfxText">SFX</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Game Mode Selector -->
+    <nav class="w-full max-w-4xl grid grid-cols-3 gap-2 mb-3">
+        <button data-tab="pachinko" class="game-tab-btn py-3 px-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-black rounded-2xl text-sm border-2 border-pink-400 shadow-lg transition flex items-center justify-center space-x-2">
+            <i class="fas fa-compact-disc text-yellow-300"></i>
+            <span>1. 리얼 파친코</span>
+        </button>
+        <button data-tab="slot" class="game-tab-btn py-3 px-2 bg-gray-800 text-gray-400 hover:text-white font-bold rounded-2xl text-sm border-2 border-gray-700 shadow-md transition flex items-center justify-center space-x-2">
+            <i class="fas fa-cubes text-purple-400"></i>
+            <span>2. VIP 슬롯 머신</span>
+        </button>
+        <button data-tab="blackjack" class="game-tab-btn py-3 px-2 bg-gray-800 text-gray-400 hover:text-white font-bold rounded-2xl text-sm border-2 border-gray-700 shadow-md transition flex items-center justify-center space-x-2">
+            <i class="fas fa-spade text-emerald-400"></i>
+            <span>3. 21 블랙잭</span>
+        </button>
+    </nav>
+
+    <!-- Main Casino Area -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-center relative">
+
+        <!-- ================= 1. PACHINKO PARLOR ================= -->
+        <section id="game-pachinko" class="game-section w-full max-w-[460px] bg-gray-900 border-4 border-pink-500/80 rounded-3xl p-4 shadow-2xl flex flex-col items-center">
+            
+            <!-- Pachinko Header / Slot LCD -->
+            <div class="w-full bg-black/90 border-2 border-pink-500/60 rounded-2xl p-2.5 mb-2 flex flex-col items-center shadow-inner relative z-10">
+                <div id="pachinkoStatusText" class="text-xs font-bold text-yellow-300 tracking-wider mb-1 animate-pulse">
+                    🎯 중앙 START 포켓에 구슬을 넣으세요!
+                </div>
+                <div class="flex items-center justify-center gap-3 bg-gray-950 px-5 py-2 rounded-xl border border-pink-500/30 text-3xl font-black tracking-widest text-pink-400">
+                    <span id="pReel1">7</span>
+                    <span id="pReel2">7</span>
+                    <span id="pReel3">7</span>
+                </div>
+                <!-- Spin Reservation Stock Dots -->
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-gray-400 font-bold">스핀 예약:</span>
+                    <div id="pStock0" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div>
+                    <div id="pStock1" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div>
+                    <div id="pStock2" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div>
+                    <div id="pStock3" class="w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div>
+                </div>
+            </div>
+
+            <!-- Pachinko Canvas Board -->
+            <div class="relative w-full aspect-[4/5] bg-gray-950 rounded-2xl p-1 border-2 border-pink-500/40 shadow-inner overflow-hidden">
+                <canvas id="pachinkoCanvas" class="w-full h-full cursor-pointer"></canvas>
+            </div>
+
+            <!-- Controls & Handle Power -->
+            <div class="w-full bg-black/60 p-3 rounded-2xl border border-gray-800 mt-3 flex flex-col gap-2">
+                <div class="flex justify-between items-center text-xs text-gray-300 font-bold px-1">
+                    <span>구슬 발사 강도 (핸들 파워)</span>
+                    <span id="pachinkoPowerText" class="text-pink-400 font-black">75%</span>
+                </div>
+                <input type="range" id="pachinkoPowerSlider" min="40" max="100" value="75" class="w-full accent-pink-500 cursor-pointer h-2 bg-gray-700 rounded-lg">
+
+                <div class="flex gap-2 mt-1">
+                    <button id="pachinkoShootBtn" class="flex-1 py-3 bg-gradient-to-r from-yellow-400 via-pink-500 to-rose-600 hover:from-yellow-300 hover:to-rose-500 text-black font-black text-base rounded-xl shadow-xl active:scale-95 transition">
+                        💥 구슬 1발 발사 (-500 P)
+                    </button>
+                    <button id="pachinkoAutoBtn" class="px-4 py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs rounded-xl border border-purple-400 transition">
+                        ⚡ 연사 OFF
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. VIP SLOT MACHINE ================= -->
+        <section id="game-slot" class="game-section w-full max-w-md bg-gray-900 border-4 border-purple-500/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center hidden">
+            <div class="text-center mb-3">
+                <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">VIP CASINO</span>
+                <h2 class="text-2xl font-black text-purple-300 mt-1">🎰 하이롤러 777 슬롯머신</h2>
+                <p class="text-xs text-gray-400">라인을 맞춰 상금을 싹쓸이하세요!</p>
+            </div>
+
+            <!-- Slot Reel Display -->
+            <div class="w-full bg-black border-4 border-purple-500 rounded-2xl p-5 my-2 flex justify-center items-center gap-3 shadow-2xl relative overflow-hidden">
+                <div class="flex gap-3 text-5xl sm:text-6xl py-2">
+                    <div id="vReel1" class="bg-gray-800 w-20 h-28 rounded-xl border-2 border-purple-400 flex items-center justify-center shadow-md">🎰</div>
+                    <div id="vReel2" class="bg-gray-800 w-20 h-28 rounded-xl border-2 border-purple-400 flex items-center justify-center shadow-md">🎰</div>
+                    <div id="vReel3" class="bg-gray-800 w-20 h-28 rounded-xl border-2 border-purple-400 flex items-center justify-center shadow-md">🎰</div>
+                </div>
+            </div>
+
+            <div id="slotPayoutMsg" class="h-6 text-center text-sm font-black text-yellow-300 my-1">
+                베팅 포인트를 선택하고 스핀을 누르세요!
+            </div>
+
+            <!-- Bet Control -->
+            <div class="w-full flex justify-between items-center bg-black/60 px-4 py-2 rounded-xl my-2 border border-purple-500/30 text-xs">
+                <span class="text-gray-300 font-bold">베팅금 설정:</span>
+                <div class="flex gap-1">
+                    <button class="slot-bet-btn px-2.5 py-1 bg-purple-900 border border-purple-500 text-purple-200 rounded-lg text-xs font-bold active" data-bet="1000">1,000 P</button>
+                    <button class="slot-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold" data-bet="5000">5,000 P</button>
+                    <button class="slot-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold" data-bet="10000">10,000 P</button>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <button id="vipSpinBtn" class="w-full py-4 mt-2 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 hover:from-purple-400 hover:to-yellow-400 text-black font-black text-xl rounded-2xl shadow-xl active:scale-95 transition">
+                🎰 스핀 돌리기! (SPIN)
+            </button>
+        </section>
+
+        <!-- ================= 3. BLACKJACK 21 ================= -->
+        <section id="game-blackjack" class="game-section w-full max-w-md bg-gray-900 border-4 border-emerald-500/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center hidden">
+            <div class="text-center mb-2">
+                <span class="bg-emerald-600 text-black px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">UNDERGROUND CASINO</span>
+                <h2 class="text-2xl font-black text-emerald-400 mt-1">🃏 지하 카지노 21 블랙잭</h2>
+                <p class="text-xs text-gray-400">딜러보다 21에 가까운 숫자를 만들어 승리하세요!</p>
+            </div>
+
+            <!-- Dealer Cards Area -->
+            <div class="w-full bg-emerald-950/80 border-2 border-emerald-500/40 rounded-2xl p-3 my-2 flex flex-col items-center">
+                <div class="text-xs text-emerald-300 font-bold mb-1 flex justify-between w-full px-2">
+                    <span>딜러 (DEALER)</span>
+                    <span id="dealerScoreDisplay" class="text-yellow-400">?</span>
+                </div>
+                <div id="dealerCards" class="flex gap-2 min-h-[70px] items-center justify-center">
+                    <!-- Cards populated by JS -->
+                </div>
+            </div>
+
+            <!-- Player Cards Area -->
+            <div class="w-full bg-emerald-950/80 border-2 border-emerald-500/40 rounded-2xl p-3 my-2 flex flex-col items-center">
+                <div class="text-xs text-emerald-300 font-bold mb-1 flex justify-between w-full px-2">
+                    <span>플레이어 (YOU)</span>
+                    <span id="playerScoreDisplay" class="text-yellow-400">0</span>
+                </div>
+                <div id="playerCards" class="flex gap-2 min-h-[70px] items-center justify-center">
+                    <!-- Cards populated by JS -->
+                </div>
+            </div>
+
+            <div id="bjStatusMsg" class="h-6 text-center text-sm font-black text-yellow-300 my-1">
+                판돈을 걸고 게임을 시작하세요!
+            </div>
+
+            <!-- Bet Controls -->
+            <div id="bjBetControls" class="w-full flex flex-col gap-2 mt-1">
+                <div class="flex justify-between items-center bg-black/60 px-4 py-2 rounded-xl border border-emerald-500/30 text-xs">
+                    <span class="text-gray-300 font-bold">베팅금:</span>
+                    <div class="flex gap-1">
+                        <button class="bj-bet-btn px-2.5 py-1 bg-emerald-900 border border-emerald-500 text-emerald-200 rounded-lg text-xs font-bold active" data-bet="5000">5,000 P</button>
+                        <button class="bj-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold" data-bet="20000">20,000 P</button>
+                        <button class="bj-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold" data-bet="50000">50,000 P</button>
+                    </div>
+                </div>
+                <button id="bjStartBtn" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-lg rounded-xl shadow-xl transition">
+                    🃏 게임 시작 (DEAL)
+                </button>
+            </div>
+
+            <!-- Play In-Game Actions -->
+            <div id="bjActionControls" class="w-full grid grid-cols-2 gap-2 mt-1 hidden">
+                <button id="bjHitBtn" class="py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black text-base rounded-xl shadow-lg transition">
+                    ➕ 카드는 더! (HIT)
+                </button>
+                <button id="bjStandBtn" class="py-3 bg-red-600 hover:bg-red-500 text-white font-black text-base rounded-xl shadow-lg transition">
+                    ✋ 여기서 멈춤 (STAND)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Emergency Loan Shark Banner -->
+    <div class="w-full max-w-4xl bg-gradient-to-r from-red-950 via-gray-900 to-red-950 border-2 border-red-600/80 p-3 rounded-2xl mt-3 flex flex-col sm:flex-row justify-between items-center shadow-xl">
+        <div class="text-center sm:text-left mb-2 sm:mb-0">
+            <span class="text-xs text-red-400 font-bold block">🩸 파산 직전이신가요? 🩸</span>
+            <span class="text-sm font-black text-gray-200">지하 사채업자 긴급 자금 대출 서비스</span>
+        </div>
+        <button id="loanSharkBtn" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black text-xs rounded-xl shadow-lg transition animate-bounce">
+            💸 긴급 대출 받기 (+50,000 P)
+        </button>
+    </div>
+
+    <footer class="mt-3 text-center text-xs text-gray-600">
+        ※ 본 게임은 가상의 도박장 시뮬레이터입니다. 과도한 도박은 삶을 피폐하게 만듭니다. | 🗑️ 대충 만든 쓰레기 🗑️
+    </footer>
+
+    <!-- Custom Alert Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-gray-900 border-2 border-pink-500 p-6 rounded-3xl max-w-xs w-full text-center shadow-2xl">
+            <h3 id="modalTitle" class="text-2xl font-black text-pink-400 mb-2">알림</h3>
+            <p id="modalMsg" class="text-sm text-gray-300 mb-4">메시지 내용</p>
+            <button id="modalCloseBtn" class="w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl text-sm transition">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Retro Web Audio Sound Synthesizer
+        class RetroAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBounce() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500 + Math.random() * 500, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+
+            playSpin() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300 + Math.random() * 200, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playJackpot() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.3);
+            }
+
+            playSiren() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(1200, now + 0.15);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.3);
+            }
+        }
+
+        const audio = new RetroAudio();
+
+        // Economy System (Points)
+        let userBalance = 100000; // Starting Balance: 100,000 P
+
+        function updateBalanceDisplay() {
+            document.getElementById('userBalanceDisplay').innerText = userBalance.toLocaleString();
+        }
+
+        function addBalance(amount) {
+            userBalance += amount;
+            updateBalanceDisplay();
+        }
+
+        function showAlert(title, msg) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        document.getElementById('modalCloseBtn').addEventListener('click', () => {
+            document.getElementById('customModal').classList.add('hidden');
+        });
+
+        // Loan Shark Emergency Loan
+        document.getElementById('loanSharkBtn').addEventListener('click', () => {
+            addBalance(50000);
+            showAlert("🩸 사채 대출 완료", "지하 사채업자에게 50,000 P를 대출 받았습니다! 꼭 갚으셔야 합니다... 😈");
+        });
+
+        // ========================================================
+        // 1. PACHINKO GAME ENGINE
+        // ========================================================
+        const pachinkoCanvas = document.getElementById('pachinkoCanvas');
+        const pCtx = pachinkoCanvas.getContext('2d');
+        let pWidth = 400, pHeight = 500;
+        let pBalls = [], pPegs = [], pWindmills = [];
+        let pStartPocket = null, pAttacker = null, pSidePockets = [];
+        let isPachinkoAuto = false;
+        let pAutoTimer = null;
+        let pachinkoPower = 75;
+
+        let pSpinStock = 0;
+        let isPSpinning = false;
+        let isPFever = false;
+        let pFeverTimer = null;
+        let pAttackerOpenProgress = 0;
+
+        const PACHINKO_BALL_COST = 500; // 500 P per ball
+
+        function resizePachinko() {
+            if (!pachinkoCanvas.parentElement) return;
+            const rect = pachinkoCanvas.parentElement.getBoundingClientRect();
+            pWidth = rect.width;
+            pHeight = rect.height;
+            pachinkoCanvas.width = pWidth;
+            pachinkoCanvas.height = pHeight;
+            initPachinkoBoard();
+        }
+
+        function initPachinkoBoard() {
+            pPegs = [];
+            pWindmills = [];
+            pSidePockets = [];
+
+            const rows = 10;
+            const startY = 140;
+            const spacingY = 28;
+
+            for (let r = 0; r < rows; r++) {
+                const cols = r % 2 === 0 ? 9 : 8;
+                const spacingX = (pWidth - 50) / 9;
+                const offsetX = 25 + (r % 2 === 0 ? 0 : spacingX / 2);
+
+                for (let c = 0; c < cols; c++) {
+                    pPegs.push({
+                        x: offsetX + c * spacingX,
+                        y: startY + r * spacingY,
+                        r: 3.5
+                    });
+                }
+            }
+
+            pWindmills = [
+                { x: pWidth * 0.25, y: 125, angle: 0, r: 16 },
+                { x: pWidth * 0.75, y: 125, angle: 0, r: 16 }
+            ];
+
+            pStartPocket = {
+                x: pWidth / 2,
+                y: pHeight - 120,
+                w: 38,
+                h: 22
+            };
+
+            pAttacker = {
+                x: pWidth / 2,
+                y: pHeight - 50,
+                w: 70,
+                h: 26
+            };
+
+            pSidePockets = [
+                { x: pWidth * 0.16, y: pHeight - 140, w: 26, h: 22, score: 2000 },
+                { x: pWidth * 0.84, y: pHeight - 140, w: 26, h: 22, score: 2000 }
+            ];
+        }
+
+        function launchPachinkoBall() {
+            if (userBalance < PACHINKO_BALL_COST) {
+                showAlert("💸 포인트 부족!", "파친코 구슬을 쏘려면 최소 500 P가 필요합니다!");
+                if (isPachinkoAuto) togglePachinkoAuto();
+                return;
+            }
+
+            addBalance(-PACHINKO_BALL_COST);
+            audio.playBounce();
+
+            const launchPower = (pachinkoPower / 100) * 16 + 5;
+            pBalls.push({
+                x: pWidth - 12,
+                y: pHeight - 25,
+                vx: -1.8 - Math.random() * 0.5,
+                vy: -launchPower - (Math.random() * 1.5),
+                r: 5.5,
+                color: '#f3f4f6'
+            });
+        }
+
+        function queuePachinkoSpin() {
+            if (pSpinStock < 4) {
+                pSpinStock++;
+                updatePStockUI();
+            }
+            if (!isPSpinning) {
+                processPachinkoSpin();
+            }
+        }
+
+        function updatePStockUI() {
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`pStock${i}`);
+                if (el) {
+                    el.className = i < pSpinStock ? "w-3 h-3 rounded-full bg-yellow-400 border border-yellow-200 animate-pulse" : "w-3 h-3 rounded-full bg-gray-800 border border-gray-600";
+                }
+            }
+        }
+
+        function processPachinkoSpin() {
+            if (pSpinStock <= 0) return;
+
+            pSpinStock--;
+            updatePStockUI();
+            isPSpinning = true;
+
+            const r1 = document.getElementById('pReel1');
+            const r2 = document.getElementById('pReel2');
+            const r3 = document.getElementById('pReel3');
+            const statusText = document.getElementById('pachinkoStatusText');
+
+            statusText.innerText = "🎰 LCD 스핀 회전 중...";
+            statusText.className = "text-xs font-bold text-yellow-300 tracking-wider mb-1 animate-bounce";
+
+            let spinTicks = 0;
+            const maxTicks = 18;
+
+            const timer = setInterval(() => {
+                spinTicks++;
+                audio.playSpin();
+
+                const n1 = Math.floor(Math.random() * 9) + 1;
+                const n2 = Math.floor(Math.random() * 9) + 1;
+                const n3 = Math.floor(Math.random() * 9) + 1;
+
+                r1.innerText = n1;
+                r2.innerText = n2;
+                r3.innerText = n3;
+
+                if (spinTicks >= maxTicks) {
+                    clearInterval(timer);
+                    isPSpinning = false;
+
+                    const isWin = Math.random() < 0.18; // ~18% win chance
+                    let finalNum = Math.floor(Math.random() * 9) + 1;
+
+                    if (isWin) {
+                        r1.innerText = finalNum;
+                        r2.innerText = finalNum;
+                        r3.innerText = finalNum;
+                        startPachinkoFever();
+                    } else {
+                        r1.innerText = n1;
+                        r2.innerText = n2;
+                        r3.innerText = (n1 === n2) ? (n2 % 9) + 1 : n3;
+                        statusText.innerText = "❌ 아쉽네요! 꽝!";
+                        statusText.className = "text-xs font-bold text-gray-400 tracking-wider mb-1";
+
+                        setTimeout(() => {
+                            if (!isPFever) statusText.innerText = "🎯 중앙 START 포켓에 구슬을 넣으세요!";
+                            if (pSpinStock > 0) processPachinkoSpin();
+                        }, 800);
+                    }
+                }
+            }, 60);
+        }
+
+        function startPachinkoFever() {
+            isPFever = true;
+            audio.playJackpot();
+            addBalance(20000); // Instant Bonus
+
+            const statusText = document.getElementById('pachinkoStatusText');
+            statusText.innerText = "🔥 FEVER 잭팟! 하단 아타카 개막! (+10,000 P) 🔥";
+            statusText.className = "text-xs font-black text-red-500 glitch-text tracking-wider mb-1";
+
+            let feverTimeLeft = 18;
+
+            if (pFeverTimer) clearInterval(pFeverTimer);
+            pFeverTimer = setInterval(() => {
+                feverTimeLeft--;
+                audio.playSiren();
+
+                // Spawn Auto Fever Balls
+                for (let k = 0; k < 2; k++) {
+                    pBalls.push({
+                        x: pWidth / 2 + (Math.random() * 40 - 20),
+                        y: 30,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: Math.random() * 2 + 1,
+                        r: 5.5,
+                        color: '#facc15'
+                    });
+                }
+
+                if (feverTimeLeft <= 0) {
+                    clearInterval(pFeverTimer);
+                    isPFever = false;
+                    statusText.innerText = "🎯 중앙 START 포켓에 구슬을 넣으세요!";
+                    statusText.className = "text-xs font-bold text-yellow-300 tracking-wider mb-1 animate-pulse";
+                    if (pSpinStock > 0) processPachinkoSpin();
+                }
+            }, 1000);
+        }
+
+        function updatePachinko() {
+            const gravity = 0.24;
+
+            if (isPFever && pAttackerOpenProgress < 1) {
+                pAttackerOpenProgress = Math.min(1, pAttackerOpenProgress + 0.1);
+            } else if (!isPFever && pAttackerOpenProgress > 0) {
+                pAttackerOpenProgress = Math.max(0, pAttackerOpenProgress - 0.1);
+            }
+
+            pWindmills.forEach(w => w.angle += 0.05);
+
+            for (let i = pBalls.length - 1; i >= 0; i--) {
+                const b = pBalls[i];
+                b.vy += gravity;
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x > pWidth - 10 && b.y < pHeight * 0.4) {
+                    b.vx = -Math.abs(b.vx) - 2;
+                }
+
+                if (b.x - b.r < 5) { b.x = 5 + b.r; b.vx = Math.abs(b.vx) * 0.7; }
+                if (b.x + b.r > pWidth - 5) { b.x = pWidth - 5 - b.r; b.vx = -Math.abs(b.vx) * 0.7; }
+                if (b.y - b.r < 5) { b.y = 5 + b.r; b.vy = Math.abs(b.vy) * 0.7; }
+
+                pWindmills.forEach(w => {
+                    const dx = b.x - w.x;
+                    const dy = b.y - w.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < b.r + w.r) {
+                        b.x = w.x + (dx / dist) * (b.r + w.r);
+                        b.vx = (dx / dist) * 5;
+                        b.vy = (dy / dist) * 3;
+                        audio.playBounce();
+                    }
+                });
+
+                pPegs.forEach(peg => {
+                    const dx = b.x - peg.x;
+                    const dy = b.y - peg.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < b.r + peg.r) {
+                        b.x = peg.x + (dx / dist) * (b.r + peg.r);
+                        b.y = peg.y + (dy / dist) * (b.r + peg.r);
+                        b.vx = (dx / dist) * 3.5 + (Math.random() - 0.5);
+                        b.vy = (dy / dist) * 3.5;
+                        audio.playBounce();
+                    }
+                });
+
+                // Start Pocket Entrance
+                if (pStartPocket && 
+                    Math.abs(b.x - pStartPocket.x) < pStartPocket.w / 2 &&
+                    Math.abs(b.y - pStartPocket.y) < pStartPocket.h / 2) {
+                    audio.playJackpot();
+                    addBalance(1500);
+                    queuePachinkoSpin();
+                    pBalls.splice(i, 1);
+                    continue;
+                }
+
+                // Side Pockets
+                pSidePockets.forEach(sp => {
+                    if (Math.abs(b.x - sp.x) < sp.w / 2 && Math.abs(b.y - sp.y) < sp.h / 2) {
+                        audio.playBounce();
+                        addBalance(sp.score);
+                        pBalls.splice(i, 1);
+                    }
+                });
+
+                // Attacker Gate
+                const currentAttackerWidth = pAttacker.w + (pAttackerOpenProgress * 40);
+                if (pAttackerOpenProgress > 0.2 &&
+                    Math.abs(b.x - pAttacker.x) < currentAttackerWidth / 2 &&
+                    Math.abs(b.y - pAttacker.y) < pAttacker.h / 2) {
+                    audio.playJackpot();
+                    addBalance(10000); // Big Attacker payout
+                    pBalls.splice(i, 1);
+                    continue;
+                }
+
+                // Out
+                if (b.y > pHeight + 20) {
+                    pBalls.splice(i, 1);
+                }
+            }
+        }
+
+        function renderPachinko() {
+            pCtx.clearRect(0, 0, pWidth, pHeight);
+
+            pCtx.beginPath();
+            pCtx.arc(pWidth / 2, pHeight / 2, pWidth / 2 - 8, Math.PI, Math.PI * 1.8);
+            pCtx.strokeStyle = 'rgba(236, 72, 153, 0.3)';
+            pCtx.lineWidth = 8;
+            pCtx.stroke();
+
+            pWindmills.forEach(w => {
+                pCtx.save();
+                pCtx.translate(w.x, w.y);
+                pCtx.rotate(w.angle);
+                pCtx.strokeStyle = '#ec4899';
+                pCtx.lineWidth = 3;
+                for (let k = 0; k < 4; k++) {
+                    pCtx.beginPath();
+                    pCtx.moveTo(0, 0);
+                    pCtx.lineTo(w.r, 0);
+                    pCtx.stroke();
+                    pCtx.rotate(Math.PI / 2);
+                }
+                pCtx.restore();
+            });
+
+            pPegs.forEach(p => {
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                pCtx.fillStyle = '#38bdf8';
+                pCtx.shadowBlur = 4;
+                pCtx.shadowColor = '#38bdf8';
+                pCtx.fill();
+                pCtx.shadowBlur = 0;
+            });
+
+            if (pStartPocket) {
+                pCtx.fillStyle = '#f59e0b';
+                pCtx.fillRect(pStartPocket.x - pStartPocket.w / 2, pStartPocket.y - pStartPocket.h / 2, pStartPocket.w, pStartPocket.h);
+                pCtx.fillStyle = '#000';
+                pCtx.font = '900 10px Jua, sans-serif';
+                pCtx.textAlign = 'center';
+                pCtx.fillText('START', pStartPocket.x, pStartPocket.y + 3);
+            }
+
+            pSidePockets.forEach(sp => {
+                pCtx.fillStyle = '#10b981';
+                pCtx.fillRect(sp.x - sp.w / 2, sp.y - sp.h / 2, sp.w, sp.h);
+                pCtx.fillStyle = '#fff';
+                pCtx.font = '900 9px Jua, sans-serif';
+                pCtx.textAlign = 'center';
+                pCtx.fillText('+2k', sp.x, sp.y + 3);
+            });
+
+            if (pAttacker) {
+                const openW = pAttacker.w + (pAttackerOpenProgress * 40);
+                pCtx.fillStyle = isPFever ? '#ef4444' : '#374151';
+                pCtx.fillRect(pAttacker.x - openW / 2, pAttacker.y - pAttacker.h / 2, openW, pAttacker.h);
+
+                pCtx.fillStyle = '#ffffff';
+                pCtx.font = '900 11px Jua, sans-serif';
+                pCtx.textAlign = 'center';
+                pCtx.fillText(isPFever ? '🔥 FEVER GATE 🔥' : 'ATTACKER', pAttacker.x, pAttacker.y + 4);
+            }
+
+            pBalls.forEach(b => {
+                pCtx.beginPath();
+                pCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                pCtx.fillStyle = b.color;
+                pCtx.shadowBlur = 6;
+                pCtx.shadowColor = '#ffffff';
+                pCtx.fill();
+                pCtx.shadowBlur = 0;
+            });
+        }
+
+        function togglePachinkoAuto() {
+            const autoBtn = document.getElementById('pachinkoAutoBtn');
+            if (isPachinkoAuto) {
+                clearInterval(pAutoTimer);
+                isPachinkoAuto = false;
+                autoBtn.innerText = "⚡ 연사 OFF";
+                autoBtn.className = "px-4 py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs rounded-xl border border-purple-400 transition";
+            } else {
+                isPachinkoAuto = true;
+                autoBtn.innerText = "🔥 연사 중...";
+                autoBtn.className = "px-4 py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl border border-red-400 animate-pulse transition";
+                pAutoTimer = setInterval(() => {
+                    launchPachinkoBall();
+                }, 300);
+            }
+        }
+
+        // ========================================================
+        // 2. VIP SLOT MACHINE ENGINE
+        // ========================================================
+        let slotBetAmount = 1000;
+        let isSlotSpinning = false;
+        const slotSymbols = ['7️⃣', '💎', '🎰', '🔔', '🍒', '🍋'];
+
+        function runVipSlot() {
+            if (isSlotSpinning) return;
+            if (userBalance < slotBetAmount) {
+                showAlert("💸 포인트 부족!", "선택한 베팅 금액만큼의 포인트가 부족합니다!");
+                return;
+            }
+
+            addBalance(-slotBetAmount);
+            isSlotSpinning = true;
+
+            const r1 = document.getElementById('vReel1');
+            const r2 = document.getElementById('vReel2');
+            const r3 = document.getElementById('vReel3');
+            const msg = document.getElementById('slotPayoutMsg');
+
+            msg.innerText = "🎰 릴이 돌고 있습니다...";
+            msg.className = "h-6 text-center text-sm font-black text-purple-300 my-1 animate-pulse";
+
+            let ticks = 0;
+            const timer = setInterval(() => {
+                ticks++;
+                audio.playSpin();
+
+                const s1 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                const s2 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                const s3 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+
+                r1.innerText = s1;
+                r2.innerText = s2;
+                r3.innerText = s3;
+
+                if (ticks >= 20) {
+                    clearInterval(timer);
+                    isSlotSpinning = false;
+
+                    // Evaluate Jackpot
+                    const final1 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                    const final2 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                    const final3 = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+
+                    r1.innerText = final1;
+                    r2.innerText = final2;
+                    r3.innerText = final3;
+
+                    if (final1 === final2 && final2 === final3) {
+                        let multiplier = 10;
+                        if (final1 === '7️⃣') multiplier = 50; // 777 Jackpot 50x!
+                        else if (final1 === '💎') multiplier = 25;
+
+                        const winAmt = slotBetAmount * multiplier;
+                        addBalance(winAmt);
+                        audio.playJackpot();
+                        msg.innerText = `🎉 대박 당첨!! ${final1}${final2}${final3} (+${winAmt.toLocaleString()} P)`;
+                        msg.className = "h-6 text-center text-sm font-black text-yellow-400 gold-glow my-1 glitch-text";
+                    } else if (final1 === final2 || final2 === final3 || final1 === final3) {
+                        const winAmt = Math.floor(slotBetAmount * 1.5);
+                        addBalance(winAmt);
+                        audio.playBounce();
+                        msg.innerText = `✨ 2개 일치! 환급금 (+${winAmt.toLocaleString()} P)`;
+                        msg.className = "h-6 text-center text-sm font-black text-green-400 my-1";
+                    } else {
+                        msg.innerText = "❌ 꽝! 다음 기회를 노리세요.";
+                        msg.className = "h-6 text-center text-sm font-bold text-gray-400 my-1";
+                    }
+                }
+            }, 65);
+        }
+
+        // ========================================================
+        // 3. BLACKJACK 21 ENGINE
+        // ========================================================
+        let bjBetAmount = 5000;
+        let deck = [];
+        let playerHand = [], dealerHand = [];
+        let isBjPlaying = false;
+
+        function createDeck() {
+            const suits = ['♠', '♥', '♦', '♣'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            deck = [];
+            for (let s of suits) {
+                for (let v of values) {
+                    deck.push({ suit: s, value: v });
+                }
+            }
+            deck.sort(() => Math.random() - 0.5);
+        }
+
+        function getCardScore(hand) {
+            let score = 0;
+            let aces = 0;
+            for (let card of hand) {
+                if (card.value === 'A') {
+                    aces++;
+                    score += 11;
+                } else if (['K', 'Q', 'J'].includes(card.value)) {
+                    score += 10;
+                } else {
+                    score += parseInt(card.value);
+                }
+            }
+            while (score > 21 && aces > 0) {
+                score -= 10;
+                aces--;
+            }
+            return score;
+        }
+
+        function renderCardHTML(card, hidden = false) {
+            if (hidden) {
+                return `<div class="w-12 h-16 bg-red-900 border-2 border-red-500 rounded-lg flex items-center justify-center text-red-200 font-black text-xl shadow-md">❓</div>`;
+            }
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            return `<div class="w-12 h-16 bg-white border-2 border-gray-300 rounded-lg flex flex-col justify-between p-1 ${isRed ? 'text-red-600' : 'text-black'} font-bold text-xs shadow-md">
+                <div>${card.value}</div>
+                <div class="text-center text-base">${card.suit}</div>
+                <div class="text-right">${card.value}</div>
+            </div>`;
+        }
+
+        function startBlackjack() {
+            if (userBalance < bjBetAmount) {
+                showAlert("💸 포인트 부족!", "블랙잭 판돈에 필요한 포인트가 부족합니다!");
+                return;
+            }
+
+            addBalance(-bjBetAmount);
+            createDeck();
+            playerHand = [deck.pop(), deck.pop()];
+            dealerHand = [deck.pop(), deck.pop()];
+            isBjPlaying = true;
+
+            document.getElementById('bjBetControls').classList.add('hidden');
+            document.getElementById('bjActionControls').classList.remove('hidden');
+
+            updateBjUI(true);
+
+            if (getCardScore(playerHand) === 21) {
+                endBlackjack('blackjack');
+            }
+        }
+
+        function updateBjUI(hideDealerSecond = false) {
+            const dContainer = document.getElementById('dealerCards');
+            const pContainer = document.getElementById('playerCards');
+
+            if (hideDealerSecond) {
+                dContainer.innerHTML = renderCardHTML(dealerHand[0]) + renderCardHTML(null, true);
+                document.getElementById('dealerScoreDisplay').innerText = "?";
+            } else {
+                dContainer.innerHTML = dealerHand.map(c => renderCardHTML(c)).join('');
+                document.getElementById('dealerScoreDisplay').innerText = getCardScore(dealerHand);
+            }
+
+            pContainer.innerHTML = playerHand.map(c => renderCardHTML(c)).join('');
+            document.getElementById('playerScoreDisplay').innerText = getCardScore(playerHand);
+        }
+
+        function bjHit() {
+            if (!isBjPlaying) return;
+            playerHand.push(deck.pop());
+            audio.playBounce();
+            updateBjUI(true);
+
+            if (getCardScore(playerHand) > 21) {
+                endBlackjack('bust');
+            }
+        }
+
+        function bjStand() {
+            if (!isBjPlaying) return;
+
+            // Dealer AI Draw until 17+
+            while (getCardScore(dealerHand) < 17) {
+                dealerHand.push(deck.pop());
+            }
+
+            const pScore = getCardScore(playerHand);
+            const dScore = getCardScore(dealerHand);
+
+            if (dScore > 21 || pScore > dScore) {
+                endBlackjack('win');
+            } else if (pScore === dScore) {
+                endBlackjack('push');
+            } else {
+                endBlackjack('lose');
+            }
+        }
+
+        function endBlackjack(result) {
+            isBjPlaying = false;
+            updateBjUI(false);
+
+            document.getElementById('bjBetControls').classList.remove('hidden');
+            document.getElementById('bjActionControls').classList.add('hidden');
+
+            const msg = document.getElementById('bjStatusMsg');
+
+            if (result === 'blackjack') {
+                const winAmt = Math.floor(bjBetAmount * 2.5);
+                addBalance(winAmt);
+                audio.playJackpot();
+                msg.innerText = `👑 블랙잭!! 상금 획득 (+${winAmt.toLocaleString()} P)`;
+                msg.className = "h-6 text-center text-sm font-black text-yellow-400 gold-glow my-1 glitch-text";
+            } else if (result === 'win') {
+                const winAmt = bjBetAmount * 2;
+                addBalance(winAmt);
+                audio.playJackpot();
+                msg.innerText = `🎉 딜러를 꺾었습니다! (+${winAmt.toLocaleString()} P)`;
+                msg.className = "h-6 text-center text-sm font-black text-green-400 my-1";
+            } else if (result === 'push') {
+                addBalance(bjBetAmount);
+                msg.innerText = "🤝 비겼습니다! 베팅금 환급.";
+                msg.className = "h-6 text-center text-sm font-bold text-yellow-300 my-1";
+            } else if (result === 'bust') {
+                audio.playBounce();
+                msg.innerText = "💥 21 초과! 버스트 패배!";
+                msg.className = "h-6 text-center text-sm font-bold text-red-500 my-1";
+            } else {
+                audio.playBounce();
+                msg.innerText = "❌ 딜러 승리! 판돈을 잃었습니다.";
+                msg.className = "h-6 text-center text-sm font-bold text-gray-400 my-1";
+            }
+        }
+
+        // ========================================================
+        // TAB SWITCHING & INITIALIZATION
+        // ========================================================
+        function switchTab(tabName) {
+            document.querySelectorAll('.game-section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.game-tab-btn').forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.className = "game-tab-btn py-3 px-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white font-black rounded-2xl text-sm border-2 border-pink-400 shadow-lg transition flex items-center justify-center space-x-2";
+                } else {
+                    btn.className = "game-tab-btn py-3 px-2 bg-gray-800 text-gray-400 hover:text-white font-bold rounded-2xl text-sm border-2 border-gray-700 shadow-md transition flex items-center justify-center space-x-2";
+                }
+            });
+
+            const target = document.getElementById(`game-${tabName}`);
+            if (target) target.classList.remove('hidden');
+
+            if (tabName === 'pachinko') resizePachinko();
+        }
+
+        window.addEventListener('load', () => {
+            updateBalanceDisplay();
+
+            document.querySelectorAll('.game-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // Pachinko Controls
+            document.getElementById('pachinkoShootBtn').addEventListener('click', launchPachinkoBall);
+            document.getElementById('pachinkoAutoBtn').addEventListener('click', togglePachinkoAuto);
+
+            const pSlider = document.getElementById('pachinkoPowerSlider');
+            pSlider.addEventListener('input', (e) => {
+                pachinkoPower = parseInt(e.target.value);
+                document.getElementById('pachinkoPowerText').innerText = `${pachinkoPower}%`;
+            });
+
+            // Slot Bet Selector & Spin
+            document.querySelectorAll('.slot-bet-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.slot-bet-btn').forEach(b => {
+                        b.className = "slot-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold";
+                    });
+                    btn.className = "slot-bet-btn px-2.5 py-1 bg-purple-900 border border-purple-500 text-purple-200 rounded-lg text-xs font-bold active";
+                    slotBetAmount = parseInt(btn.dataset.bet);
+                });
+            });
+            document.getElementById('vipSpinBtn').addEventListener('click', runVipSlot);
+
+            // Blackjack Bet Selector & Actions
+            document.querySelectorAll('.bj-bet-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.bj-bet-btn').forEach(b => {
+                        b.className = "bj-bet-btn px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg text-xs font-bold";
+                    });
+                    btn.className = "bj-bet-btn px-2.5 py-1 bg-emerald-900 border border-emerald-500 text-emerald-200 rounded-lg text-xs font-bold active";
+                    bjBetAmount = parseInt(btn.dataset.bet);
+                });
+            });
+            document.getElementById('bjStartBtn').addEventListener('click', startBlackjack);
+            document.getElementById('bjHitBtn').addEventListener('click', bjHit);
+            document.getElementById('bjStandBtn').addEventListener('click', bjStand);
+
+            // Sound Toggle
+            document.getElementById('sfxToggleBtn').addEventListener('click', () => {
+                audio.enabled = !audio.enabled;
+                document.getElementById('sfxText').innerText = audio.enabled ? 'SFX ON' : 'SFX OFF';
+                document.getElementById('sfxIcon').className = audio.enabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            });
+
+            // Main Animation Engine Loop
+            function mainLoop() {
+                updatePachinko();
+                renderPachinko();
+                requestAnimationFrame(mainLoop);
+            }
+            requestAnimationFrame(mainLoop);
+        });
+
+        window.addEventListener('resize', resizePachinko);
+    </script>
+</body>
+</html>
